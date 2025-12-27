@@ -20,6 +20,10 @@ app.add_middleware(
 def root():
     return {"message": "Image Captioning API - POST /caption endpoint'ine resim yükleyin"}
 
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
 @app.post("/caption")
 async def caption_image(file: UploadFile = File(...)):
     """Yüklenen resim için açıklama üretir"""
