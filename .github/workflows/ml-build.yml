@@ -1,0 +1,51 @@
+name: ML Model Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+    
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirement.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirement.txt
+    
+    - name: Run model evaluation
+      run: |
+        python eval.py
+    
+    - name: Create model artifact
+      run: |
+        mkdir -p artifacts
+        echo "Model: Salesforce/blip-image-captioning-base" > artifacts/model_info.txt
+        echo "Build Date: $(date)" >> artifacts/model_info.txt
+        echo "Commit: ${{ github.sha }}" >> artifacts/model_info.txt
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ml-model-artifact
+        path: artifacts/
+        retention-days: 30
